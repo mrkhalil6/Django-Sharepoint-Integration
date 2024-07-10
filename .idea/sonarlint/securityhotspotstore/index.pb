@@ -31,3 +31,6 @@ S
 #sharepoint_app/templates/login.html,c\f\cf8895fc53c494c6d1422dc38bc44e0eba792060
 d
 4.venv/Lib/site-packages/django/contrib/auth/views.py,3\e\3e4024a33bc72897c0e42b080e6f3d70903ef214
+:
+
+.gitignore,a\5\a5cc2925ca8258af241be7e5b0381edf30266302
