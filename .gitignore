@@ -159,3 +159,4 @@ cython_debug/
 sharepoint_app/__pycache__/*
 /__pycache__/
 */__pycache__/*
+db.sqlite3
