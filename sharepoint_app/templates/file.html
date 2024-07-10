@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Details</title>
+</head>
+<body>
+    <h1>File Details</h1>
+    <p><strong>Name:</strong> {{ file['name'] }}</p>
+    <p><strong>Size:</strong> {{ file['size'] }} bytes</p>
+    <p><strong>Download:</strong> <a href="{{ file['@microsoft.graph.downloadUrl'] }}">Download Link</a></p>
+    <p><a href="{% url 'list_files' %}">Back to Files and Folders</a></p>
+</body>
+</html>

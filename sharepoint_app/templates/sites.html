@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>SharePoint Sites</h2>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for site in sites %}
+        <li class="list-group-item">
+            <i class="fas fa-folder"></i>
+            <a href="{% url 'list_document_libraries' site_id=site.id %}">{{ site.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

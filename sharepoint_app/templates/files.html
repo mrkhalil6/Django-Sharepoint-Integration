@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Files and Folders</title>
+</head>
+<body>
+    <h1>Files and Folders</h1>
+    <ul>
+        {% for file in files['value'] %}
+            <li>
+                {% if file['folder'] %}
+                    <strong>Folder:</strong> {{ file['name'] }}
+                {% else %}
+                    <strong>File:</strong> <a href="{% url 'download_file' file['id'] %}">{{ file['name'] }}</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

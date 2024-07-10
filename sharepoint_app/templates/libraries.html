@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Document Libraries</h2>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for library in libraries %}
+        <li class="list-group-item">
+            <i class="fas fa-folder"></i>
+            <a href="{% url 'list_items_in_library' site_id=site_id library_id=library.id %}">{{ library.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
