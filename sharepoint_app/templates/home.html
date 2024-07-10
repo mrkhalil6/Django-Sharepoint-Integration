@@ -4,14 +4,17 @@
 <div class="jumbotron text-center">
     <h1 class="display-4">Welcome</h1>
     <p class="lead">Explore your SharePoint Sites and Libraries</p>
-    <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger btn-lg">Logout</button>
-    </form>
-    {% if not sharepoint_logged_in %}
-    <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Login with SharePoint</a>
-    {% else %}
-    <a class="btn btn-success btn-lg" href="{% url 'list_sites' %}" role="button">View SharePoint Sites</a>
-    {% endif %}
+    <div class="d-flex flex-column">
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-lg">Logout</button>
+        </form>
+        <br>
+        {% if not sharepoint_logged_in %}
+        <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Login with SharePoint</a>
+        {% else %}
+        <a class="btn btn-success btn-lg" href="{% url 'list_sites' %}" role="button">View SharePoint Sites</a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
