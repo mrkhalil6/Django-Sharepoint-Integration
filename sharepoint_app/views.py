@@ -1,12 +1,13 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
-import msal
-import requests
 from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
 from .models import Client
 from .forms import ClientForm
+import msal
+import requests
+from common.utils import is_token_valid, get_access_token
 
 
 def login_view(request):
@@ -34,7 +35,12 @@ def home(request):
 def login(request):
     user = request.user
     client = Client.objects.get(user=user)
-    authority = f"https://login.microsoftonline.com/{client.tenant_id}"
+    if is_token_valid(client.token_expires):
+        request.session['access_token'] = client.access_token
+        return redirect('list_sites')
+
+    tenant_id = "common"  # Use "common" for multi-tenant
+    authority = f"https://login.microsoftonline.com/{tenant_id}"
     msal_client = msal.ConfidentialClientApplication(
         client.client_id, authority=authority, client_credential=client.client_secret
     )
@@ -50,7 +56,8 @@ def callback(request):
     code = request.GET.get('code')
     user = request.user
     client = Client.objects.get(user=user)
-    authority = f"https://login.microsoftonline.com/{client.tenant_id}"
+    tenant_id = "common"
+    authority = f"https://login.microsoftonline.com/{tenant_id}"
     msal_client = msal.ConfidentialClientApplication(
         client.client_id, authority=authority, client_credential=client.client_secret
     )
@@ -71,8 +78,13 @@ def callback(request):
 
 
 @login_required
-def list_all_sites(request):
-    access_token = get_access_token(request.user)
+def list_sites(request):
+    try:
+        access_token = get_access_token(request.user)
+    except Exception as e:
+        return redirect('login')
+
+    request.session['access_token'] = access_token
     headers = {
         'Authorization': f'Bearer {access_token}',
         'Accept': 'application/json',
@@ -81,15 +93,10 @@ def list_all_sites(request):
         "https://graph.microsoft.com/v1.0/sites?search=*",
         headers=headers
     )
-    sites = response.json().get('value', [])
-    return sites
-
-
-@login_required
-def list_sites(request):
-    if 'access_token' not in request.session:
+    if response.status_code == 401:  # Token is invalid or expired
         return redirect('login')
-    sites = list_all_sites(request)
+
+    sites = response.json().get('value', [])
     return render(request, 'sites.html', {'sites': sites})
 
 
@@ -139,33 +146,11 @@ def download_file(request, site_id, library_id, item_id):
     return redirect(file_url)
 
 
-def get_access_token(user):
-    client = Client.objects.get(user=user)
-    if client.token_expires and client.token_expires > timezone.now():
-        return client.access_token
-
-    authority = f"https://login.microsoftonline.com/{client.tenant_id}"
-    msal_client = msal.ConfidentialClientApplication(
-        client.client_id, authority=authority, client_credential=client.client_secret
-    )
-    result = msal_client.acquire_token_by_refresh_token(client.refresh_token,
-                                                        scopes=["https://graph.microsoft.com/.default"])
-    if "access_token" in result:
-        client.access_token = result["access_token"]
-        client.refresh_token = result.get("refresh_token")
-        client.token_expires = timezone.now() + timezone.timedelta(seconds=result["expires_in"])
-        client.save()
-        return client.access_token
-    else:
-        raise Exception("Could not refresh token")
-
-
-@login_required
 def register_client(request):
     if request.method == 'POST':
         form = ClientForm(request.POST)
         if form.is_valid():
-            client = form.save(commit=False)
+            client = form.save(commit(False))
             client.user = request.user
             client.save()
             return redirect('login_view')
